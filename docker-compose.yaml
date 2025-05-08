@@ -7,9 +7,9 @@ services:
     environment:
       QDRANT__SERVICE__GRPC_PORT: 6334
       QDRANT__SERVICE__HTTP_PORT: 6333
-    ports:
-      - "8080:6333"  # HTTP API (Redirect to HTTPS)
-      - "8443:6333" # HTTPS API (Secure)
+    expose:
+      - "6333"  # HTTP API (internal)
+      - "6334"  # GRPC API (internal)
     volumes:
       - qdrant_storage:/qdrant/storage
     restart: always
