@@ -1,0 +1,18 @@
+version: '3.7'
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.3.0
+    container_name: qdrant
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+      QDRANT__SERVICE__HTTP_PORT: 6333
+    ports:
+      - "80:6333"  # HTTP API (Redirect to HTTPS)
+      - "443:6333" # HTTPS API (Secure)
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    restart: always
+
+volumes:
+  qdrant_storage:
