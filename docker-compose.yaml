@@ -1,18 +1,52 @@
 version: '3.7'
 
 services:
-  qdrant:
-    image: qdrant/qdrant:v1.3.0
-    container_name: qdrant
+  milvus:
+    image: milvusdb/milvus:v2.3.1
+    container_name: milvus
     environment:
-      QDRANT__SERVICE__GRPC_PORT: 6334
-      QDRANT__SERVICE__HTTP_PORT: 6333
-    expose:
-      - "6333"  # HTTP API
-      - "6334"  # GRPC API
+      MILVUS_DEPLOY_MODE: standalone
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_USE_SSL: "false"
+      ROCKSMQ_PATH: /var/lib/milvus/rocksmq
+      WAL_PATH: /var/lib/milvus/wal
+      LOG_LEVEL: debug
+    ports:
+      - "19530:19530" # Milvus API Port
+      - "9091:9091"   # Metrics Port
     volumes:
-      - qdrant_storage:/qdrant/storage
+      - milvus_data:/var/lib/milvus
+    restart: always
+    depends_on:
+      - etcd
+      - minio
+
+  etcd:
+    image: bitnami/etcd:latest
+    container_name: etcd
+    environment:
+      ETCD_ROOT_PASSWORD: "password"
+    ports:
+      - "2379:2379"
+    restart: always
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
     restart: always
 
 volumes:
-  qdrant_storage:
+  milvus_data:
+  minio_data:
